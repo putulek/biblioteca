@@ -10,7 +10,9 @@
 <meta name="theme-color" content="#1c1410">
 <title>Biblioteca</title>
 <style>
-:root{--bg:#1c1410;--card:#2a1f18;--paper:#f4ead8;--accent:#c9954c;--muted:#a89880}
+:root,[data-theme=madeira]{--bg:#1c1410;--card:#2a1f18;--paper:#f4ead8;--accent:#c9954c;--onacc:#1c1410;--muted:#a89880;--line:#3d2f24;--wall:#150e0a;--pl1:#7a5230;--pl2:#4a3220}
+[data-theme=classica]{--bg:#14231c;--card:#1d3328;--paper:#efe6cf;--accent:#d4af5a;--onacc:#14231c;--muted:#9fb3a3;--line:#2c4739;--wall:#0d1812;--pl1:#6b3b24;--pl2:#3f2015}
+[data-theme=minimal]{--bg:#161616;--card:#222;--paper:#ececec;--accent:#d9d9d9;--onacc:#161616;--muted:#8a8a8a;--line:#2e2e2e;--wall:#101010;--pl1:#3a3a3a;--pl2:#2a2a2a}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--paper);
   font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;overscroll-behavior:none}
@@ -18,25 +20,51 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .view{position:fixed;inset:0;display:none;flex-direction:column}
 .view.on{display:flex}
 
-/* Estante */
+/* Cabeçalho */
 header.top{padding:calc(env(safe-area-inset-top) + 16px) 18px 10px;display:flex;align-items:center;justify-content:space-between}
 header.top h1{margin:0;font:700 28px Georgia,serif}
-.add{background:var(--accent);color:#1c1410;font-weight:600;padding:9px 16px;border-radius:20px;font-size:15px}
-#grid{flex:1;overflow:auto;padding:8px 18px calc(env(safe-area-inset-bottom) + 24px);
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:22px 14px;align-content:start}
+.hb{display:flex;gap:8px;align-items:center}
+.add{background:var(--accent);color:var(--onacc);font-weight:600;padding:9px 16px;border-radius:20px;font-size:15px}
+.look{border:1px solid var(--line);padding:8px 14px;border-radius:20px;font-size:15px}
+#scroller{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding-bottom:env(safe-area-inset-bottom)}
+.emptymsg{text-align:center;color:var(--muted);margin-top:30vh;line-height:1.6;padding:0 18px}
+
+/* Vista: capas */
+.items.capas{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:22px 14px;padding:8px 18px 24px}
 .book{position:relative}
 .cover{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:3px 7px 7px 3px;background:var(--card);
   box-shadow:0 6px 14px rgba(0,0,0,.55),inset 4px 0 6px -3px rgba(0,0,0,.5);display:block}
-.bar{height:3px;background:#3d2f24;border-radius:2px;margin:9px 0 5px;overflow:hidden}
+.bar{height:3px;background:var(--line);border-radius:2px;margin:9px 0 5px;overflow:hidden}
 .bar i{display:block;height:100%;background:var(--accent)}
 .t{font-size:12px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .p{font-size:11px;color:var(--muted);margin-top:2px}
-.more{position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:13px;background:rgba(0,0,0,.55);font-size:16px;line-height:26px}
-.empty{grid-column:1/-1;text-align:center;color:var(--muted);margin-top:30vh;line-height:1.6}
+.more{position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:13px;background:rgba(0,0,0,.6);color:#fff;font-size:16px;line-height:26px}
+
+/* Vista: estante */
+.items.estante{display:flex;flex-wrap:wrap;align-items:flex-end;align-content:flex-start;padding:0 12px;min-height:calc(236px * 3);
+  background:repeating-linear-gradient(to bottom,var(--wall) 0,var(--wall) 220px,var(--pl1) 220px,var(--pl1) 224px,var(--pl2) 224px,var(--pl2) 236px)}
+.sp{height:236px;padding-bottom:16px;display:flex;align-items:flex-end;margin-right:2px}
+.spine{position:relative;display:flex;flex-direction:column;align-items:center;padding:26px 0 6px;overflow:hidden;
+  border-radius:2px 2px 1px 1px;
+  background-image:linear-gradient(90deg,rgba(255,255,255,.16),rgba(255,255,255,0) 35%,rgba(0,0,0,.28));
+  box-shadow:1px 0 2px rgba(0,0,0,.5);
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.spine::before,.spine::after{content:"";position:absolute;left:0;right:0;height:3px;border-top:1px solid currentColor;border-bottom:1px solid currentColor;opacity:.4}
+.spine::before{top:8px}
+.spine::after{top:15px}
+.spine span{flex:1;min-height:0;max-width:100%;writing-mode:vertical-rl;transform:rotate(180deg);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:600 12px Georgia,serif;line-height:1.1;padding-top:6px}
+.spine b{font:600 9px -apple-system,sans-serif;margin-top:6px;opacity:.85}
+
+/* Vista: lista */
+.row{display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--line)}
+.row img{width:44px;height:66px;object-fit:cover;border-radius:2px 4px 4px 2px;box-shadow:0 3px 8px rgba(0,0,0,.5);flex:none}
+.row .rt{flex:1;min-width:0}
+.row .more{position:static;flex:none}
 
 /* Leitor */
 #reader{background:#111}
-.rtop,.rbot{background:rgba(28,20,16,.97);display:flex;align-items:center;gap:10px;padding:10px 14px}
+.rtop,.rbot{background:var(--bg);display:flex;align-items:center;gap:10px;padding:10px 14px}
 .rtop{padding-top:calc(env(safe-area-inset-top) + 10px)}
 .rbot{padding-bottom:calc(env(safe-area-inset-bottom) + 10px)}
 .rtop .ttl{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;text-align:center}
@@ -47,13 +75,17 @@ header.top h1{margin:0;font:700 28px Georgia,serif}
 .nav{font-size:26px;width:36px;color:var(--accent)}
 #slider{flex:1;accent-color:var(--accent)}
 
-/* Menu */
-#sheet{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;z-index:9}
-#sheet.on{display:flex}
-#sheet div{width:100%;background:var(--card);border-radius:16px 16px 0 0;padding:10px 14px calc(env(safe-area-inset-bottom) + 14px)}
-#sheet button{display:block;width:100%;padding:15px;font-size:17px;border-bottom:1px solid #3d2f24}
-#sheet button:last-child{border:0;color:var(--muted)}
-#sheet .del{color:#e57373}
+/* Menus */
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;z-index:9}
+.sheet.on{display:flex}
+.sheet>div{width:100%;background:var(--card);border-radius:16px 16px 0 0;padding:10px 14px calc(env(safe-area-inset-bottom) + 14px)}
+.sheet .opt{display:block;width:100%;padding:15px;font-size:17px;border-bottom:1px solid var(--line)}
+.sheet .opt:last-child{border:0;color:var(--muted)}
+.sheet .del{color:#e57373}
+.sheet h3{margin:10px 2px 0;font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.seg{display:flex;gap:6px;margin:8px 0 14px}
+.seg button{flex:1;padding:11px 4px;border-radius:10px;background:var(--bg);border:1px solid var(--line);font-size:15px}
+.seg button.on{border-color:var(--accent);color:var(--accent);font-weight:600}
 </style>
 </head>
 <body>
@@ -61,9 +93,12 @@ header.top h1{margin:0;font:700 28px Georgia,serif}
 <section id="shelf" class="view on">
   <header class="top">
     <h1>Biblioteca</h1>
-    <label class="add">+ PDF<input id="file" type="file" accept="application/pdf" multiple hidden></label>
+    <div class="hb">
+      <button class="look" id="lookbtn">Aspeto</button>
+      <label class="add">+ PDF<input id="file" type="file" accept="application/pdf" multiple hidden></label>
+    </div>
   </header>
-  <div id="grid"></div>
+  <div id="scroller"><div id="items" class="items"></div></div>
 </section>
 
 <section id="reader" class="view">
@@ -80,10 +115,22 @@ header.top h1{margin:0;font:700 28px Georgia,serif}
   </div>
 </section>
 
-<div id="sheet"><div>
-  <button id="s-ren">Mudar título</button>
-  <button id="s-del" class="del">Apagar livro</button>
-  <button id="s-can">Cancelar</button>
+<div class="sheet" id="sheet"><div>
+  <button class="opt" id="s-ren">Mudar título</button>
+  <button class="opt del" id="s-del">Apagar livro</button>
+  <button class="opt" id="s-can">Cancelar</button>
+</div></div>
+
+<div class="sheet" id="look"><div>
+  <h3>Vista</h3>
+  <div class="seg" data-k="view">
+    <button data-v="capas">Capas</button><button data-v="estante">Estante</button><button data-v="lista">Lista</button>
+  </div>
+  <h3>Tema</h3>
+  <div class="seg" data-k="theme">
+    <button data-v="madeira">Madeira</button><button data-v="classica">Clássica</button><button data-v="minimal">Minimal</button>
+  </div>
+  <button class="opt" id="l-ok">Fechar</button>
 </div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -92,7 +139,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 const $ = s => document.querySelector(s);
 
-/* ---------- Ícone da app (gerado aqui, sem ficheiros extra) ---------- */
+/* ---------- Ícone da app ---------- */
 (function(){
   const c = document.createElement('canvas'); c.width = c.height = 180;
   const x = c.getContext('2d');
@@ -105,6 +152,21 @@ const $ = s => document.querySelector(s);
   const l = document.createElement('link'); l.rel = 'apple-touch-icon'; l.href = c.toDataURL('image/png');
   document.head.appendChild(l);
 })();
+
+/* ---------- Preferências de aspeto ---------- */
+const ls = {
+  get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} }
+};
+let view = ls.get('bib.view') || 'estante';
+let theme = ls.get('bib.theme') || 'madeira';
+const THEME_BG = { madeira: '#1c1410', classica: '#14231c', minimal: '#161616' };
+function applyLook() {
+  document.documentElement.dataset.theme = theme;
+  document.querySelector('meta[name=theme-color]').content = THEME_BG[theme];
+  document.querySelectorAll('.seg button').forEach(b =>
+    b.classList.toggle('on', (b.parentNode.dataset.k === 'view' ? view : theme) === b.dataset.v));
+}
 
 /* ---------- Base de dados (IndexedDB) ---------- */
 let db;
@@ -126,32 +188,122 @@ const getFile  = id => rq(store('files').get(id));
 const putFile  = f  => rq(store('files', 'readwrite').put(f));
 const delBook  = id => Promise.all([rq(store('books','readwrite').delete(id)), rq(store('files','readwrite').delete(id))]);
 
-/* ---------- Estante ---------- */
-const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-async function renderShelf() {
-  const books = (await allBooks()).sort((a, b) => (b.lastOpened || b.addedAt) - (a.lastOpened || a.addedAt));
-  const grid = $('#grid');
-  if (!books.length) {
-    grid.innerHTML = '<div class="empty">A estante está vazia.<br>Toca em “+ PDF” para adicionar o primeiro livro.</div>';
-    return;
+/* ---------- Cores das lombadas ---------- */
+const PALETTE = ['122,43,43','43,74,58','42,59,92','92,64,36','74,43,92','70,70,70','128,96,40','34,70,78'];
+const hash = s => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+function dominant(src) {
+  return new Promise(res => {
+    const im = new Image();
+    im.onload = () => {
+      const c = document.createElement('canvas'); c.width = 20; c.height = 30;
+      const x = c.getContext('2d'); x.drawImage(im, 0, 0, 20, 30);
+      const d = x.getImageData(0, 0, 20, 30).data;
+      let r = 0, g = 0, b = 0, n = 0;
+      for (let i = 0; i < d.length; i += 4) {
+        const R = d[i], G = d[i+1], B = d[i+2];
+        const mx = Math.max(R, G, B), mn = Math.min(R, G, B);
+        if (mx > 225 && mx - mn < 25) continue;
+        if (mx < 25) continue;
+        r += R; g += G; b += B; n++;
+      }
+      res(n < 30 ? null : [r / n, g / n, b / n]);
+    };
+    im.onerror = () => res(null);
+    im.src = src;
+  });
+}
+function tune([r, g, b]) {
+  const l = .299 * r + .587 * g + .114 * b;
+  if (l > 150) { const k = 150 / l; r *= k; g *= k; b *= k; }
+  else if (l < 40) { const d = 40 - l; r += d; g += d; b += d; }
+  return [r, g, b].map(v => Math.round(Math.min(255, v))).join(',');
+}
+async function fillColors(books) {
+  for (const b of books) {
+    if (b.color) continue;
+    const c = await dominant(b.cover);
+    b.color = c ? tune(c) : PALETTE[hash(b.id) % PALETTE.length];
+    await putBook(b);
   }
-  grid.innerHTML = books.map(b => {
-    const pct = Math.round((b.page || 1) / b.pages * 100);
-    return `<div class="book" data-id="${b.id}">
-      <img class="cover" src="${b.cover}" alt="">
-      <button class="more" data-more="${b.id}">⋯</button>
-      <div class="bar"><i style="width:${pct}%"></i></div>
-      <div class="t">${esc(b.title)}</div>
-      <div class="p">${pct}% · pág. ${b.page || 1}/${b.pages}</div>
-    </div>`;
-  }).join('');
 }
 
-$('#grid').addEventListener('click', e => {
+/* ---------- Estante ---------- */
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pctOf = b => Math.round((b.page || 1) / b.pages * 100);
+
+function cardHTML(b) {
+  const pct = pctOf(b);
+  return `<div class="book" data-id="${b.id}">
+    <img class="cover" src="${b.cover}" alt="">
+    <button class="more" data-more="${b.id}">⋯</button>
+    <div class="bar"><i style="width:${pct}%"></i></div>
+    <div class="t">${esc(b.title)}</div>
+    <div class="p">${pct}% · pág. ${b.page || 1}/${b.pages}</div>
+  </div>`;
+}
+function rowHTML(b) {
+  const pct = pctOf(b);
+  return `<div class="row" data-id="${b.id}">
+    <img src="${b.cover}" alt="">
+    <div class="rt">
+      <div class="t">${esc(b.title)}</div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="p">${pct}% · pág. ${b.page || 1}/${b.pages}</div>
+    </div>
+    <button class="more" data-more="${b.id}">⋯</button>
+  </div>`;
+}
+function spineHTML(b) {
+  const p = Math.min(b.pages, 600);
+  const h = Math.round(140 + p * 0.12), w = Math.round(26 + p * 0.04);
+  const col = b.color || '70,70,70';
+  const [r, g, bl] = col.split(',').map(Number);
+  const fg = (.299 * r + .587 * g + .114 * bl) > 140 ? '#2a1f18' : '#f4ead8';
+  const pct = pctOf(b);
+  return `<div class="sp"><button class="spine" data-id="${b.id}"
+    style="width:${w}px;height:${h}px;background-color:rgb(${col});color:${fg}">
+    <span>${esc(b.title)}</span><b>${pct >= 100 ? '✓' : pct + '%'}</b></button></div>`;
+}
+
+async function renderShelf() {
+  const all = await allBooks();
+  const el = $('#items');
+  if (!all.length) {
+    el.className = 'items';
+    el.innerHTML = '<div class="emptymsg">A estante está vazia.<br>Toca em “+ PDF” para adicionar o primeiro livro.</div>';
+    return;
+  }
+  let books, fn;
+  if (view === 'estante') {
+    books = all.sort((a, b) => a.title.localeCompare(b.title, 'pt'));
+    await fillColors(books);
+    fn = spineHTML;
+  } else {
+    books = all.sort((a, b) => (b.lastOpened || b.addedAt) - (a.lastOpened || a.addedAt));
+    fn = view === 'lista' ? rowHTML : cardHTML;
+  }
+  el.className = 'items ' + view;
+  el.innerHTML = books.map(fn).join('');
+}
+
+/* toque abre o livro; toque longo numa lombada abre o menu */
+let lpT = null, lp = false;
+const items = $('#items');
+items.addEventListener('touchstart', e => {
+  const s = e.target.closest('.spine');
+  if (!s) return;
+  lp = false;
+  lpT = setTimeout(() => { lp = true; if (navigator.vibrate) navigator.vibrate(10); openSheet(s.dataset.id); }, 500);
+}, { passive: true });
+['touchmove', 'touchend', 'touchcancel'].forEach(ev =>
+  items.addEventListener(ev, () => clearTimeout(lpT), { passive: true }));
+items.addEventListener('contextmenu', e => e.preventDefault());
+items.addEventListener('click', e => {
+  if (lp) { lp = false; return; }
   const more = e.target.closest('[data-more]');
   if (more) { openSheet(more.dataset.more); return; }
-  const card = e.target.closest('.book');
-  if (card) openBook(card.dataset.id);
+  const el = e.target.closest('[data-id]');
+  if (el) openBook(el.dataset.id);
 });
 
 /* ---------- Importar ---------- */
@@ -237,7 +389,6 @@ $('#next').onclick = () => goTo(pageNum + 1);
 $('#slider').oninput = e => { $('#rpct').textContent = e.target.value + '/' + pdfDoc.numPages; };
 $('#slider').onchange = e => goTo(+e.target.value);
 
-// tocar nos cantos vira a página; deslizar também
 $('#stage').addEventListener('click', e => {
   const r = e.currentTarget.getBoundingClientRect();
   const x = (e.clientX - r.left) / r.width;
@@ -247,7 +398,7 @@ let t0 = null;
 $('#stage').addEventListener('touchstart', e => { t0 = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }, { passive: true });
 $('#stage').addEventListener('touchend', e => {
   if (!t0 || e.changedTouches.length !== 1) return;
-  if (window.visualViewport && window.visualViewport.scale > 1.05) { t0 = null; return; } // com zoom, não vira
+  if (window.visualViewport && window.visualViewport.scale > 1.05) { t0 = null; return; }
   const dx = e.changedTouches[0].clientX - t0.x, dy = e.changedTouches[0].clientY - t0.y;
   if (Math.abs(dx) > 70 && Math.abs(dy) < 45) goTo(pageNum + (dx < 0 ? 1 : -1));
   t0 = null;
@@ -262,11 +413,11 @@ $('#back').onclick = async () => {
 };
 
 /* ---------- Menu do livro ---------- */
-let sheetId = null;
-function openSheet(id) { sheetId = id; $('#sheet').classList.add('on'); }
+let sheetId = null, sheetAt = 0;
+function openSheet(id) { sheetId = id; sheetAt = Date.now(); $('#sheet').classList.add('on'); }
 function closeSheet() { $('#sheet').classList.remove('on'); }
 $('#s-can').onclick = closeSheet;
-$('#sheet').onclick = e => { if (e.target.id === 'sheet') closeSheet(); };
+$('#sheet').onclick = e => { if (e.target.id === 'sheet' && Date.now() - sheetAt > 400) closeSheet(); };
 $('#s-ren').onclick = async () => {
   const b = await getBook(sheetId); closeSheet();
   const t = prompt('Novo título:', b.title);
@@ -277,11 +428,27 @@ $('#s-del').onclick = async () => {
   if (confirm('Apagar "' + b.title + '"? Isto também apaga o progresso.')) { await delBook(sheetId); renderShelf(); }
 };
 
+/* ---------- Menu de aspeto ---------- */
+$('#lookbtn').onclick = () => $('#look').classList.add('on');
+$('#look').addEventListener('click', e => {
+  const b = e.target.closest('.seg button');
+  if (b) {
+    const k = b.parentNode.dataset.k;
+    if (k === 'view') view = b.dataset.v; else theme = b.dataset.v;
+    ls.set('bib.view', view); ls.set('bib.theme', theme);
+    applyLook();
+    if (k === 'view') renderShelf();
+    return;
+  }
+  if (e.target.id === 'look' || e.target.id === 'l-ok') $('#look').classList.remove('on');
+});
+
 /* ---------- Arranque ---------- */
 function show(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === id));
 }
 (async () => {
+  applyLook();
   db = await openDB();
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
   renderShelf();
