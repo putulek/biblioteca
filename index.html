@@ -64,16 +64,31 @@ header.top h1{margin:0;font:700 28px Georgia,serif}
 
 /* Leitor */
 #reader{background:#111}
-.rtop,.rbot{background:var(--bg);display:flex;align-items:center;gap:10px;padding:10px 14px}
+.rtop,.rbot{background:var(--bg);display:flex;align-items:center;gap:6px;padding:10px 14px}
 .rtop{padding-top:calc(env(safe-area-inset-top) + 10px)}
-.rbot{padding-bottom:calc(env(safe-area-inset-bottom) + 10px)}
-.rtop .ttl{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;text-align:center}
-.rtop .back{color:var(--accent);font-size:16px}
-.rtop .pct{font-size:13px;color:var(--muted);min-width:78px;text-align:right}
+.rbot{padding-bottom:calc(env(safe-area-inset-bottom) + 10px);gap:10px}
+.rtop .ttl{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;text-align:center}
+.rtop .back{color:var(--accent);font-size:16px;white-space:nowrap}
+.rtop .pct{font-size:13px;color:var(--muted);min-width:70px;text-align:right;white-space:nowrap}
+.ib{font-size:21px;width:32px;color:var(--accent)}
 #stage{flex:1;overflow:auto;background:#111;-webkit-overflow-scrolling:touch}
-#canvas{display:block;margin:0 auto;background:#fff}
+#pg{position:relative;margin:0 auto;background:#fff}
+#canvas{display:block;-webkit-touch-callout:none}
+#hl{position:absolute;inset:0;pointer-events:none}
+#hl i{position:absolute;border-radius:2px;mix-blend-mode:multiply;opacity:.55}
+#hl i[data-n]{box-shadow:inset 0 -2px 0 rgba(0,0,0,.45)}
+.textLayer{position:absolute;inset:0;overflow:hidden;line-height:1;-webkit-user-select:text;user-select:text}
+.textLayer span,.textLayer br{color:transparent;position:absolute;white-space:pre;transform-origin:0% 0%}
 .nav{font-size:26px;width:36px;color:var(--accent)}
 #slider{flex:1;accent-color:var(--accent)}
+
+/* Barra de seleção */
+#seltb{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 70px);
+  display:none;gap:10px;align-items:center;background:var(--card);padding:8px 14px;border-radius:26px;
+  box-shadow:0 6px 20px rgba(0,0,0,.6);z-index:8}
+#seltb.on{display:flex}
+#seltb .dot{width:30px;height:30px;border-radius:15px;border:2px solid rgba(255,255,255,.4)}
+#seltb .nt{padding:0 6px;font-size:15px;color:var(--accent);white-space:nowrap}
 
 /* Menus */
 .sheet{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;z-index:9}
@@ -88,6 +103,18 @@ header.top h1{margin:0;font:700 28px Georgia,serif}
 .seg button.on{border-color:var(--accent);color:var(--accent);font-weight:600}
 #busy{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);color:var(--paper);
   padding:14px 22px;border-radius:12px;z-index:20;display:none;box-shadow:0 8px 24px rgba(0,0,0,.6);font-size:15px}
+
+/* Lista de anotações */
+#annlist{max-height:50vh;overflow:auto;-webkit-overflow-scrolling:touch;margin:6px 0 4px}
+.ai{position:relative;padding:12px 40px 12px 4px;border-bottom:1px solid var(--line)}
+.ah{display:flex;gap:8px;font-size:12px;color:var(--muted);margin-bottom:5px}
+.ah b{color:var(--accent);font-weight:600}
+.at{font-size:14px;line-height:1.35;padding-left:8px;border-left:3px solid var(--accent)}
+.an{font-size:13px;color:var(--muted);margin:5px 0 0 11px;font-style:italic}
+.ax{position:absolute;right:2px;top:8px;width:32px;height:32px;color:var(--muted);font-size:16px}
+.empty2{color:var(--muted);text-align:center;padding:26px 10px;line-height:1.5;font-size:14px}
+.q{font:15px/1.4 Georgia,serif;padding:8px 4px}
+.nn{font-size:14px;color:var(--muted);font-style:italic;padding:0 4px 10px}
 </style>
 </head>
 <body>
@@ -108,14 +135,30 @@ header.top h1{margin:0;font:700 28px Georgia,serif}
     <button class="back" id="back">‹ Estante</button>
     <div class="ttl" id="rtitle"></div>
     <div class="pct" id="rpct"></div>
+    <button class="ib" id="mk" aria-label="Marcador">☆</button>
+    <button class="ib" id="lst" aria-label="Anotações">☰</button>
   </div>
-  <div id="stage"><canvas id="canvas"></canvas></div>
+  <div id="stage">
+    <div id="pg">
+      <canvas id="canvas"></canvas>
+      <div id="hl"></div>
+      <div id="tl" class="textLayer"></div>
+    </div>
+  </div>
   <div class="rbot">
     <button class="nav" id="prev">‹</button>
     <input id="slider" type="range" min="1" max="1" value="1">
     <button class="nav" id="next">›</button>
   </div>
 </section>
+
+<div id="seltb">
+  <button class="dot" data-c="#ffe14d" style="background:#ffe14d" aria-label="Amarelo"></button>
+  <button class="dot" data-c="#7ddf64" style="background:#7ddf64" aria-label="Verde"></button>
+  <button class="dot" data-c="#6cc4ff" style="background:#6cc4ff" aria-label="Azul"></button>
+  <button class="dot" data-c="#ff8fc7" style="background:#ff8fc7" aria-label="Rosa"></button>
+  <button class="nt" id="st-note">+ Nota</button>
+</div>
 
 <div class="sheet" id="sheet"><div>
   <button class="opt" id="s-ren">Mudar título</button>
@@ -138,6 +181,20 @@ header.top h1{margin:0;font:700 28px Georgia,serif}
   <button class="opt" id="l-ok">Fechar</button>
 </div></div>
 
+<div class="sheet" id="ann"><div>
+  <h3>Anotações</h3>
+  <div id="annlist"></div>
+  <button class="opt" id="a-share">Partilhar notas</button>
+  <button class="opt" id="a-ok">Fechar</button>
+</div></div>
+
+<div class="sheet" id="hs"><div>
+  <div id="hstext"></div>
+  <button class="opt" id="h-note">Editar nota</button>
+  <button class="opt del" id="h-del">Apagar destaque</button>
+  <button class="opt" id="h-ok">Fechar</button>
+</div></div>
+
 <input id="bfile" type="file" hidden>
 <div id="busy"></div>
 
@@ -146,6 +203,7 @@ header.top h1{margin:0;font:700 28px Georgia,serif}
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 const $ = s => document.querySelector(s);
+const uid = () => Math.random().toString(36).slice(2, 9);
 
 /* ---------- Ícone da app ---------- */
 (function(){
@@ -246,7 +304,7 @@ async function fillColors(books) {
 }
 
 /* ---------- Estante ---------- */
-const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pctOf = b => Math.round((b.page || 1) / b.pages * 100);
 
 function cardHTML(b) {
@@ -362,6 +420,7 @@ async function openBook(id) {
   pageNum = Math.min(Math.max(b.page || 1, 1), pdfDoc.numPages);
   $('#rtitle').textContent = b.title;
   $('#slider').max = pdfDoc.numPages;
+  $('#tl').innerHTML = ''; $('#hl').innerHTML = '';
   show('reader');
   renderPage();
 }
@@ -377,19 +436,31 @@ async function renderPage() {
   const cssScale = stage.clientWidth / base.width;
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const vp = page.getViewport({ scale: cssScale * dpr });
-  const c = $('#canvas');
+  const cvp = page.getViewport({ scale: cssScale });
+  const c = $('#canvas'), pg = $('#pg'), tl = $('#tl');
   c.width = vp.width; c.height = vp.height;
-  c.style.width = (vp.width / dpr) + 'px';
-  c.style.height = (vp.height / dpr) + 'px';
+  c.style.width = cvp.width + 'px'; c.style.height = cvp.height + 'px';
+  pg.style.width = cvp.width + 'px'; pg.style.height = cvp.height + 'px';
   stage.scrollTop = 0;
+  tl.innerHTML = '';
+  drawHighlights();
   task = page.render({ canvasContext: c.getContext('2d'), viewport: vp });
-  try { await task.promise; } catch (e) {}
+  try { await task.promise; } catch (e) { return; }
+  if (my !== seq) return;
+  try {
+    const tc = await page.getTextContent();
+    if (my !== seq) return;
+    tl.style.setProperty('--scale-factor', cvp.scale);
+    const t = pdfjsLib.renderTextLayer({ textContentSource: tc, container: tl, viewport: cvp });
+    await t.promise;
+  } catch (e) {}
 }
 
 function updateUI() {
   const n = pdfDoc.numPages;
   $('#rpct').textContent = pageNum + '/' + n + ' · ' + Math.round(pageNum / n * 100) + '%';
   $('#slider').value = pageNum;
+  $('#mk').textContent = (cur.marks || []).includes(pageNum) ? '★' : '☆';
 }
 
 function goTo(n) {
@@ -406,7 +477,20 @@ $('#next').onclick = () => goTo(pageNum + 1);
 $('#slider').oninput = e => { $('#rpct').textContent = e.target.value + '/' + pdfDoc.numPages; };
 $('#slider').onchange = e => goTo(+e.target.value);
 
+/* toque: destaque → menu; cantos → vira página */
+let selSeen = 0;
+function hitHighlight(cx, cy) {
+  const box = $('#pg').getBoundingClientRect();
+  const x = (cx - box.left) / box.width, y = (cy - box.top) / box.height;
+  return (cur.ann || []).filter(a => a.page === pageNum)
+    .find(a => a.rects.some(r => x >= r[0] && x <= r[0] + r[2] && y >= r[1] && y <= r[1] + r[3]));
+}
 $('#stage').addEventListener('click', e => {
+  const s = getSelection();
+  if (s && !s.isCollapsed) return;
+  if (Date.now() - selSeen < 600) return;
+  const h = hitHighlight(e.clientX, e.clientY);
+  if (h) { openHl(h.id); return; }
   const r = e.currentTarget.getBoundingClientRect();
   const x = (e.clientX - r.left) / r.width;
   if (x < 0.22) goTo(pageNum - 1); else if (x > 0.78) goTo(pageNum + 1);
@@ -415,6 +499,8 @@ let t0 = null;
 $('#stage').addEventListener('touchstart', e => { t0 = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }, { passive: true });
 $('#stage').addEventListener('touchend', e => {
   if (!t0 || e.changedTouches.length !== 1) return;
+  const s = getSelection();
+  if (s && !s.isCollapsed) { t0 = null; return; }
   if (window.visualViewport && window.visualViewport.scale > 1.05) { t0 = null; return; }
   const dx = e.changedTouches[0].clientX - t0.x, dy = e.changedTouches[0].clientY - t0.y;
   if (Math.abs(dx) > 70 && Math.abs(dy) < 45) goTo(pageNum + (dx < 0 ? 1 : -1));
@@ -424,10 +510,180 @@ $('#stage').addEventListener('touchend', e => {
 $('#back').onclick = async () => {
   if (task) { try { task.cancel(); } catch (e) {} }
   if (pdfDoc) { pdfDoc.destroy(); pdfDoc = null; }
-  cur = null; seq++;
+  cur = null; seq++; selInfo = null;
+  $('#seltb').classList.remove('on');
   show('shelf');
   renderShelf();
 };
+
+/* ---------- Destaques ---------- */
+let selInfo = null, hideT = null, lastColor = '#ffe14d';
+
+function drawHighlights() {
+  const hl = $('#hl');
+  hl.innerHTML = '';
+  if (!cur) return;
+  for (const a of cur.ann || []) {
+    if (a.page !== pageNum) continue;
+    for (const r of a.rects) {
+      const i = document.createElement('i');
+      i.style.cssText = `left:${r[0]*100}%;top:${r[1]*100}%;width:${r[2]*100}%;height:${r[3]*100}%;background:${a.color}`;
+      if (a.note) i.dataset.n = '1';
+      hl.appendChild(i);
+    }
+  }
+}
+
+function readSelection() {
+  const s = getSelection();
+  if (!s || s.isCollapsed || !s.rangeCount) return null;
+  const rg = s.getRangeAt(0);
+  if (!$('#tl').contains(rg.commonAncestorContainer)) return null;
+  const box = $('#pg').getBoundingClientRect();
+  if (!box.width) return null;
+  let rs = [...rg.getClientRects()].filter(q => q.width > 1 && q.height > 1);
+  rs = rs.filter((a, i) => !rs.some((b, j) => j !== i &&
+    b.left <= a.left + .5 && b.top <= a.top + .5 && b.right >= a.right - .5 && b.bottom >= a.bottom - .5 &&
+    (b.width > a.width + .5 || b.height > a.height + .5 || j < i)));
+  if (!rs.length) return null;
+  const rects = rs.map(q => [
+    +((q.left - box.left) / box.width).toFixed(4),
+    +((q.top - box.top) / box.height).toFixed(4),
+    +(q.width / box.width).toFixed(4),
+    +(q.height / box.height).toFixed(4)
+  ]);
+  const text = s.toString().replace(/\s+/g, ' ').trim();
+  return text ? { rects, text } : null;
+}
+
+document.addEventListener('selectionchange', () => {
+  if (!cur) return;
+  const info = readSelection();
+  if (info) {
+    clearTimeout(hideT);
+    selInfo = info; selSeen = Date.now();
+    $('#seltb').classList.add('on');
+  } else {
+    clearTimeout(hideT);
+    hideT = setTimeout(() => {
+      if (!readSelection()) { selInfo = null; $('#seltb').classList.remove('on'); }
+    }, 1200);
+  }
+});
+$('#seltb').addEventListener('touchstart', () => clearTimeout(hideT), { passive: true });
+$('#seltb').addEventListener('pointerdown', e => e.preventDefault());
+$('#seltb').addEventListener('click', e => {
+  const d = e.target.closest('.dot');
+  if (d) { addHighlight(d.dataset.c, false); return; }
+  if (e.target.id === 'st-note') addHighlight(lastColor, true);
+});
+
+function addHighlight(color, ask) {
+  const info = selInfo;
+  if (!info || !cur) return;
+  let note = '';
+  if (ask) {
+    const n = prompt('Nota para este destaque:');
+    if (n === null) return;
+    note = n.trim();
+  }
+  lastColor = color;
+  (cur.ann = cur.ann || []).push({ id: uid(), page: pageNum, rects: info.rects, text: info.text, color, note, t: Date.now() });
+  putBook(cur);
+  const s = getSelection(); if (s) s.removeAllRanges();
+  selInfo = null;
+  $('#seltb').classList.remove('on');
+  drawHighlights();
+}
+
+/* menu de um destaque */
+let hid = null;
+function openHl(id) {
+  const a = (cur.ann || []).find(x => x.id === id);
+  if (!a) return;
+  hid = id;
+  $('#hstext').innerHTML = '<div class="q">“' + esc(a.text) + '”</div>' + (a.note ? '<div class="nn">' + esc(a.note) + '</div>' : '');
+  $('#h-note').textContent = a.note ? 'Editar nota' : 'Adicionar nota';
+  $('#hs').classList.add('on');
+}
+$('#h-ok').onclick = () => $('#hs').classList.remove('on');
+$('#h-note').onclick = () => {
+  const a = cur.ann.find(x => x.id === hid);
+  if (!a) return;
+  const n = prompt('Nota:', a.note || '');
+  if (n === null) return;
+  a.note = n.trim();
+  putBook(cur); drawHighlights(); openHl(hid);
+};
+$('#h-del').onclick = () => {
+  if (!confirm('Apagar este destaque?')) return;
+  cur.ann = cur.ann.filter(x => x.id !== hid);
+  putBook(cur);
+  $('#hs').classList.remove('on');
+  drawHighlights();
+};
+
+/* ---------- Marcadores e lista de anotações ---------- */
+$('#mk').onclick = () => {
+  const m = cur.marks = cur.marks || [];
+  const i = m.indexOf(pageNum);
+  if (i >= 0) m.splice(i, 1); else m.push(pageNum);
+  putBook(cur); updateUI();
+};
+
+function listItems() {
+  const out = [];
+  (cur.marks || []).forEach(p => out.push({ k: 'm', page: p }));
+  (cur.ann || []).forEach(a => out.push({ k: 'h', page: a.page, a }));
+  return out.sort((x, y) => x.page - y.page || (x.k === 'm' ? -1 : 1));
+}
+function renderList() {
+  const its = listItems();
+  $('#annlist').innerHTML = its.length ? its.map(x => `
+    <div class="ai" data-go="${x.page}">
+      <div class="ah"><b>pág. ${x.page}</b><span>${x.k === 'm' ? 'Marcador' : (x.a.note ? 'Nota' : 'Destaque')}</span></div>
+      ${x.k === 'h' ? `<div class="at" style="border-left-color:${x.a.color}">${esc(x.a.text)}</div>` : ''}
+      ${x.k === 'h' && x.a.note ? `<div class="an">${esc(x.a.note)}</div>` : ''}
+      <button class="ax" data-d="${x.k === 'm' ? 'm:' + x.page : 'h:' + x.a.id}">✕</button>
+    </div>`).join('')
+    : '<div class="empty2">Ainda não tens anotações.<br>Seleciona texto no livro para destacar,<br>ou toca em ☆ para marcar a página.</div>';
+}
+$('#lst').onclick = () => { renderList(); $('#ann').classList.add('on'); };
+$('#a-ok').onclick = () => $('#ann').classList.remove('on');
+$('#annlist').addEventListener('click', e => {
+  const d = e.target.closest('[data-d]');
+  if (d) {
+    if (!confirm('Apagar esta anotação?')) return;
+    const [k, v] = d.dataset.d.split(':');
+    if (k === 'm') cur.marks = (cur.marks || []).filter(p => p !== +v);
+    else cur.ann = (cur.ann || []).filter(a => a.id !== v);
+    putBook(cur); renderList(); drawHighlights(); updateUI();
+    return;
+  }
+  const g = e.target.closest('[data-go]');
+  if (g) { $('#ann').classList.remove('on'); goTo(+g.dataset.go); }
+});
+function notesText() {
+  let s = cur.title + '\n\n';
+  for (const x of listItems()) {
+    if (x.k === 'm') s += '[Marcador] pág. ' + x.page + '\n\n';
+    else {
+      s += 'pág. ' + x.page + ': “' + x.a.text + '”\n';
+      if (x.a.note) s += '  Nota: ' + x.a.note + '\n';
+      s += '\n';
+    }
+  }
+  return s.trim();
+}
+$('#a-share').onclick = () => {
+  if (!listItems().length) { alert('Não há anotações para partilhar.'); return; }
+  const text = notesText();
+  if (navigator.share) navigator.share({ title: cur.title, text }).catch(() => {});
+  else if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => alert('Notas copiadas.'));
+};
+['ann', 'hs'].forEach(id => $('#' + id).addEventListener('click', e => {
+  if (e.target.id === id) $('#' + id).classList.remove('on');
+}));
 
 /* ---------- Menu do livro ---------- */
 let sheetId = null, sheetAt = 0;
@@ -442,7 +698,7 @@ $('#s-ren').onclick = async () => {
 };
 $('#s-del').onclick = async () => {
   const b = await getBook(sheetId); closeSheet();
-  if (confirm('Apagar "' + b.title + '"? Isto também apaga o progresso.')) { await delBook(sheetId); renderShelf(); }
+  if (confirm('Apagar "' + b.title + '"? Isto também apaga o progresso e as anotações.')) { await delBook(sheetId); renderShelf(); }
 };
 
 /* ---------- Menu de opções ---------- */
