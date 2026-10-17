@@ -68,15 +68,17 @@ header.top h1{margin:0;font:700 28px Georgia,serif}
 .rtop{padding-top:calc(env(safe-area-inset-top) + 10px)}
 .rbot{padding-bottom:calc(env(safe-area-inset-bottom) + 10px);gap:10px}
 .rtop .ttl{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;text-align:center}
-.rtop .back{color:var(--accent);font-size:16px;white-space:nowrap}
+.rtop .back{color:var(--accent);font-size:30px;line-height:1;width:30px}
 .rtop .pct{font-size:13px;color:var(--muted);min-width:70px;text-align:right;white-space:nowrap}
 .ib{font-size:21px;width:32px;color:var(--accent)}
+.ib.aa{font:600 16px Georgia,serif}
 #stage{flex:1;overflow:auto;background:#111;-webkit-overflow-scrolling:touch}
 #pg{position:relative;margin:0 auto;background:#fff}
 #canvas{display:block;-webkit-touch-callout:none}
 #hl{position:absolute;inset:0;pointer-events:none}
 #hl i{position:absolute;border-radius:2px;mix-blend-mode:multiply;opacity:.55}
 #hl i[data-n]{box-shadow:inset 0 -2px 0 rgba(0,0,0,.45)}
+#pg.dark #hl i{mix-blend-mode:normal;opacity:.4}
 .textLayer{position:absolute;inset:0;overflow:hidden;line-height:1;-webkit-user-select:text;user-select:text}
 .textLayer span,.textLayer br{color:transparent;position:absolute;white-space:pre;transform-origin:0% 0%}
 .nav{font-size:26px;width:36px;color:var(--accent)}
@@ -103,6 +105,17 @@ header.top h1{margin:0;font:700 28px Georgia,serif}
 .seg button.on{border-color:var(--accent);color:var(--accent);font-weight:600}
 #busy{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);color:var(--paper);
   padding:14px 22px;border-radius:12px;z-index:20;display:none;box-shadow:0 8px 24px rgba(0,0,0,.6);font-size:15px}
+
+/* Painel de leitura */
+#rd{background:transparent}
+#rd>div{box-shadow:0 -8px 24px rgba(0,0,0,.55)}
+.sw{display:flex;gap:10px;margin:8px 2px 10px;align-items:center;flex-wrap:wrap}
+.sw button{width:32px;height:32px;border-radius:16px;border:2px solid rgba(255,255,255,.35)}
+.sw input{width:44px;height:32px;border:0;background:none;padding:0}
+#rd-prev{border-radius:10px;padding:10px 14px;font:16px/1.3 Georgia,serif;margin:0 2px 8px;border:1px solid var(--line)}
+.rng{width:100%;accent-color:var(--accent);margin:10px 0 6px}
+.chk{display:flex;gap:10px;align-items:center;padding:12px 4px;font-size:15px}
+.chk input{width:20px;height:20px;accent-color:var(--accent)}
 
 /* Lista de anotações */
 #annlist{max-height:50vh;overflow:auto;-webkit-overflow-scrolling:touch;margin:6px 0 4px}
@@ -132,9 +145,10 @@ header.top h1{margin:0;font:700 28px Georgia,serif}
 
 <section id="reader" class="view">
   <div class="rtop">
-    <button class="back" id="back">‹ Estante</button>
+    <button class="back" id="back" aria-label="Voltar à estante">‹</button>
     <div class="ttl" id="rtitle"></div>
     <div class="pct" id="rpct"></div>
+    <button class="ib aa" id="rdbtn" aria-label="Leitura">Aa</button>
     <button class="ib" id="mk" aria-label="Marcador">☆</button>
     <button class="ib" id="lst" aria-label="Anotações">☰</button>
   </div>
@@ -179,6 +193,31 @@ header.top h1{margin:0;font:700 28px Georgia,serif}
   <button class="opt" id="b-exp">Exportar backup</button>
   <button class="opt" id="b-imp">Importar backup</button>
   <button class="opt" id="l-ok">Fechar</button>
+</div></div>
+
+<div class="sheet" id="rd"><div>
+  <h3>Tema de leitura</h3>
+  <div class="seg" id="rd-theme">
+    <button data-t="dia">Dia</button><button data-t="sepia">Sépia</button><button data-t="noite">Noite</button><button data-t="cor">Cor</button>
+  </div>
+  <div id="rd-colorbox" style="display:none">
+    <div class="sw" id="rd-sw">
+      <button data-c="#14392b" style="background:#14392b" aria-label="Verde"></button>
+      <button data-c="#101a2e" style="background:#101a2e" aria-label="Azul"></button>
+      <button data-c="#2a1b3d" style="background:#2a1b3d" aria-label="Roxo"></button>
+      <button data-c="#2b2b2b" style="background:#2b2b2b" aria-label="Cinza"></button>
+      <button data-c="#000000" style="background:#000000" aria-label="Preto"></button>
+      <button data-c="#f6efdc" style="background:#f6efdc" aria-label="Creme"></button>
+      <input type="color" id="rd-bg" aria-label="Outra cor">
+    </div>
+    <div id="rd-prev">Aa — a letra ajusta-se sozinha.</div>
+  </div>
+  <h3>Brilho</h3>
+  <input class="rng" type="range" id="rd-bri" min="35" max="100" value="100">
+  <h3>Luz quente</h3>
+  <input class="rng" type="range" id="rd-warm" min="0" max="60" value="0">
+  <label class="chk"><input type="checkbox" id="rd-book"> Só para este livro</label>
+  <button class="opt" id="rd-ok">Fechar</button>
 </div></div>
 
 <div class="sheet" id="ann"><div>
@@ -235,7 +274,7 @@ const THEME_BG = { madeira: '#1c1410', classica: '#14231c', minimal: '#161616' }
 function applyLook() {
   document.documentElement.dataset.theme = theme;
   document.querySelector('meta[name=theme-color]').content = THEME_BG[theme];
-  document.querySelectorAll('.seg button').forEach(b =>
+  document.querySelectorAll('#look .seg button').forEach(b =>
     b.classList.toggle('on', (b.parentNode.dataset.k === 'view' ? view : theme) === b.dataset.v));
 }
 function setBusy(msg) {
@@ -409,6 +448,106 @@ async function importPDF(f) {
   pdf.destroy();
 }
 
+/* ---------- Tema de leitura ---------- */
+const DEF_READ = { t: 'dia', bg: '#14392b', bri: 100, warm: 0 };
+let rd = { ...DEF_READ };
+
+const hex2rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const rgb2hex = a => '#' + a.map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+const lumOf = ([r, g, b]) => {
+  const f = v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); };
+  return .2126 * f(r) + .7152 * f(g) + .0722 * f(b);
+};
+const contrast = (a, b) => { const x = lumOf(a), y = lumOf(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+function autoFg(bg) {
+  const target = contrast(bg, [255,255,255]) > contrast(bg, [0,0,0]) ? [255,255,255] : [0,0,0];
+  let k = .7, fg;
+  do { fg = bg.map((v, i) => v + (target[i] - v) * k); k += .05; } while (contrast(fg, bg) < 7 && k <= 1.001);
+  return fg;
+}
+function themeColors() {
+  if (rd.t === 'sepia') return { bg: [241,228,200], fg: [59,47,28] };
+  if (rd.t === 'noite') return { bg: [23,23,28], fg: [208,201,184] };
+  if (rd.t === 'cor') { const bg = hex2rgb(rd.bg); return { bg, fg: autoFg(bg) }; }
+  return null;
+}
+function recolor(canvas) {
+  const th = themeColors();
+  if (!th) return;
+  const ctx = canvas.getContext('2d');
+  const im = ctx.getImageData(0, 0, canvas.width, canvas.height), d = im.data;
+  const R = new Uint8ClampedArray(256), G = new Uint8ClampedArray(256), B = new Uint8ClampedArray(256);
+  for (let i = 0; i < 256; i++) {
+    const t = i / 255;
+    R[i] = th.fg[0] + (th.bg[0] - th.fg[0]) * t;
+    G[i] = th.fg[1] + (th.bg[1] - th.fg[1]) * t;
+    B[i] = th.fg[2] + (th.bg[2] - th.fg[2]) * t;
+  }
+  for (let i = 0; i < d.length; i += 4) {
+    const l = (d[i] * 77 + d[i+1] * 150 + d[i+2] * 29) >> 8;
+    d[i] = R[l]; d[i+1] = G[l]; d[i+2] = B[l];
+  }
+  ctx.putImageData(im, 0, 0);
+}
+function loadRead() {
+  let g = {};
+  try { g = JSON.parse(ls.get('bib.read') || '{}'); } catch (e) {}
+  rd = { ...DEF_READ, ...g, ...((cur && cur.read) || {}) };
+}
+function saveRead() {
+  if ($('#rd-book').checked) { cur.read = { ...rd }; putBook(cur); }
+  else {
+    if (cur.read) { delete cur.read; putBook(cur); }
+    ls.set('bib.read', JSON.stringify(rd));
+  }
+}
+function applyRead() {
+  const th = themeColors();
+  const bgc = th ? rgb2hex(th.bg) : '#ffffff';
+  $('#pg').style.background = bgc;
+  $('#stage').style.background = th ? bgc : '#111';
+  $('#pg').classList.toggle('dark', !!th && lumOf(th.bg) < .25);
+  $('#stage').style.filter = (rd.bri < 100 || rd.warm > 0) ? `brightness(${rd.bri / 100}) sepia(${rd.warm / 100})` : 'none';
+}
+function syncRdUI() {
+  document.querySelectorAll('#rd-theme button').forEach(b => b.classList.toggle('on', b.dataset.t === rd.t));
+  $('#rd-colorbox').style.display = rd.t === 'cor' ? 'block' : 'none';
+  $('#rd-bg').value = rd.bg;
+  $('#rd-bri').value = rd.bri;
+  $('#rd-warm').value = rd.warm;
+  $('#rd-book').checked = !!(cur && cur.read);
+  const bg = hex2rgb(rd.bg);
+  $('#rd-prev').style.background = rd.bg;
+  $('#rd-prev').style.color = rgb2hex(autoFg(bg));
+}
+let rdT = null;
+function changeTheme() {
+  saveRead(); applyRead(); syncRdUI();
+  clearTimeout(rdT);
+  rdT = setTimeout(() => renderPage(true), 120);
+}
+$('#rdbtn').onclick = () => { syncRdUI(); $('#rd').classList.add('on'); };
+$('#rd-ok').onclick = () => $('#rd').classList.remove('on');
+$('#rd').addEventListener('click', e => { if (e.target.id === 'rd') $('#rd').classList.remove('on'); });
+$('#rd-theme').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  rd.t = b.dataset.t;
+  changeTheme();
+});
+$('#rd-sw').addEventListener('click', e => {
+  const b = e.target.closest('button[data-c]');
+  if (!b) return;
+  rd.bg = b.dataset.c; rd.t = 'cor';
+  changeTheme();
+});
+$('#rd-bg').addEventListener('input', e => { rd.bg = e.target.value; rd.t = 'cor'; changeTheme(); });
+$('#rd-bri').addEventListener('input', e => { rd.bri = +e.target.value; applyRead(); });
+$('#rd-bri').addEventListener('change', saveRead);
+$('#rd-warm').addEventListener('input', e => { rd.warm = +e.target.value; applyRead(); });
+$('#rd-warm').addEventListener('change', saveRead);
+$('#rd-book').addEventListener('change', saveRead);
+
 /* ---------- Leitor ---------- */
 let cur = null, pdfDoc = null, pageNum = 1, task = null, seq = 0;
 
@@ -421,17 +560,20 @@ async function openBook(id) {
   $('#rtitle').textContent = b.title;
   $('#slider').max = pdfDoc.numPages;
   $('#tl').innerHTML = ''; $('#hl').innerHTML = '';
+  loadRead(); applyRead();
   show('reader');
   renderPage();
 }
 
-async function renderPage() {
+async function renderPage(keep) {
   const my = ++seq;
   if (task) { try { task.cancel(); } catch (e) {} }
+  if (!pdfDoc) return;
   updateUI();
   const page = await pdfDoc.getPage(pageNum);
   if (my !== seq) return;
   const stage = $('#stage');
+  const top = keep ? stage.scrollTop : 0;
   const base = page.getViewport({ scale: 1 });
   const cssScale = stage.clientWidth / base.width;
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -441,12 +583,16 @@ async function renderPage() {
   c.width = vp.width; c.height = vp.height;
   c.style.width = cvp.width + 'px'; c.style.height = cvp.height + 'px';
   pg.style.width = cvp.width + 'px'; pg.style.height = cvp.height + 'px';
-  stage.scrollTop = 0;
+  stage.scrollTop = top;
   tl.innerHTML = '';
   drawHighlights();
-  task = page.render({ canvasContext: c.getContext('2d'), viewport: vp });
+  const off = document.createElement('canvas');
+  off.width = vp.width; off.height = vp.height;
+  task = page.render({ canvasContext: off.getContext('2d'), viewport: vp });
   try { await task.promise; } catch (e) { return; }
   if (my !== seq) return;
+  recolor(off);
+  c.getContext('2d').drawImage(off, 0, 0);
   try {
     const tc = await page.getTextContent();
     if (my !== seq) return;
@@ -512,6 +658,7 @@ $('#back').onclick = async () => {
   if (pdfDoc) { pdfDoc.destroy(); pdfDoc = null; }
   cur = null; seq++; selInfo = null;
   $('#seltb').classList.remove('on');
+  $('#rd').classList.remove('on');
   show('shelf');
   renderShelf();
 };
