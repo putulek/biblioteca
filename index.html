@@ -86,6 +86,8 @@ header.top h1{margin:0;font:700 28px Georgia,serif}
 .seg{display:flex;gap:6px;margin:8px 0 14px}
 .seg button{flex:1;padding:11px 4px;border-radius:10px;background:var(--bg);border:1px solid var(--line);font-size:15px}
 .seg button.on{border-color:var(--accent);color:var(--accent);font-weight:600}
+#busy{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);color:var(--paper);
+  padding:14px 22px;border-radius:12px;z-index:20;display:none;box-shadow:0 8px 24px rgba(0,0,0,.6);font-size:15px}
 </style>
 </head>
 <body>
@@ -94,7 +96,7 @@ header.top h1{margin:0;font:700 28px Georgia,serif}
   <header class="top">
     <h1>Biblioteca</h1>
     <div class="hb">
-      <button class="look" id="lookbtn">Aspeto</button>
+      <button class="look" id="lookbtn">Opções</button>
       <label class="add">+ PDF<input id="file" type="file" accept="application/pdf" multiple hidden></label>
     </div>
   </header>
@@ -130,8 +132,14 @@ header.top h1{margin:0;font:700 28px Georgia,serif}
   <div class="seg" data-k="theme">
     <button data-v="madeira">Madeira</button><button data-v="classica">Clássica</button><button data-v="minimal">Minimal</button>
   </div>
+  <h3>Backup</h3>
+  <button class="opt" id="b-exp">Exportar backup</button>
+  <button class="opt" id="b-imp">Importar backup</button>
   <button class="opt" id="l-ok">Fechar</button>
 </div></div>
+
+<input id="bfile" type="file" hidden>
+<div id="busy"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
@@ -153,6 +161,11 @@ const $ = s => document.querySelector(s);
   document.head.appendChild(l);
 })();
 
+/* ---------- Offline (service worker) ---------- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
 /* ---------- Preferências de aspeto ---------- */
 const ls = {
   get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
@@ -166,6 +179,11 @@ function applyLook() {
   document.querySelector('meta[name=theme-color]').content = THEME_BG[theme];
   document.querySelectorAll('.seg button').forEach(b =>
     b.classList.toggle('on', (b.parentNode.dataset.k === 'view' ? view : theme) === b.dataset.v));
+}
+function setBusy(msg) {
+  const b = $('#busy');
+  b.textContent = msg || '';
+  b.style.display = msg ? 'block' : 'none';
 }
 
 /* ---------- Base de dados (IndexedDB) ---------- */
@@ -286,7 +304,6 @@ async function renderShelf() {
   el.innerHTML = books.map(fn).join('');
 }
 
-/* toque abre o livro; toque longo numa lombada abre o menu */
 let lpT = null, lp = false;
 const items = $('#items');
 items.addEventListener('touchstart', e => {
@@ -306,7 +323,7 @@ items.addEventListener('click', e => {
   if (el) openBook(el.dataset.id);
 });
 
-/* ---------- Importar ---------- */
+/* ---------- Importar PDF ---------- */
 $('#file').onchange = async e => {
   for (const f of e.target.files) {
     try { await importPDF(f); }
@@ -428,8 +445,13 @@ $('#s-del').onclick = async () => {
   if (confirm('Apagar "' + b.title + '"? Isto também apaga o progresso.')) { await delBook(sheetId); renderShelf(); }
 };
 
-/* ---------- Menu de aspeto ---------- */
-$('#lookbtn').onclick = () => $('#look').classList.add('on');
+/* ---------- Menu de opções ---------- */
+let pending = null;
+$('#lookbtn').onclick = () => {
+  pending = null;
+  $('#b-exp').textContent = 'Exportar backup';
+  $('#look').classList.add('on');
+};
 $('#look').addEventListener('click', e => {
   const b = e.target.closest('.seg button');
   if (b) {
@@ -442,6 +464,84 @@ $('#look').addEventListener('click', e => {
   }
   if (e.target.id === 'look' || e.target.id === 'l-ok') $('#look').classList.remove('on');
 });
+
+/* ---------- Backup ---------- */
+async function prepareBackup() {
+  const books = await allBooks();
+  if (!books.length) { alert('Não há livros para exportar.'); return; }
+  setBusy('A preparar o backup…');
+  try {
+    const parts = [], metas = [];
+    let total = 0;
+    for (const b of books) {
+      const f = await getFile(b.id);
+      if (!f) continue;
+      metas.push({ ...b, size: f.data.byteLength });
+      parts.push(f.data);
+      total += f.data.byteLength;
+    }
+    const enc = new TextEncoder();
+    const head = enc.encode(JSON.stringify({ v: 1, date: Date.now(), books: metas }));
+    const len = new Uint8Array(4);
+    new DataView(len.buffer).setUint32(0, head.length);
+    const blob = new Blob([enc.encode('BIB1'), len, head, ...parts], { type: 'application/octet-stream' });
+    const name = 'biblioteca-' + new Date().toISOString().slice(0, 10) + '.bib';
+    pending = new File([blob], name, { type: 'application/octet-stream' });
+    $('#b-exp').textContent = 'Guardar backup (' + Math.max(1, Math.round(total / 1048576)) + ' MB) · toca aqui';
+  } catch (err) {
+    alert('Erro ao preparar o backup: ' + err.message);
+  } finally {
+    setBusy('');
+  }
+}
+async function sharePending() {
+  const file = pending;
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'Backup da biblioteca' });
+    } else {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(file); a.download = file.name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    }
+  } catch (err) {
+    if (err.name !== 'AbortError') alert('Não consegui guardar o backup: ' + err.message);
+  }
+}
+$('#b-exp').onclick = () => pending ? sharePending() : prepareBackup();
+
+$('#b-imp').onclick = () => $('#bfile').click();
+$('#bfile').onchange = async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  setBusy('A importar o backup…');
+  try {
+    if ((await f.slice(0, 4).text()) !== 'BIB1') throw new Error('o ficheiro não é um backup desta biblioteca');
+    const hl = new DataView(await f.slice(4, 8).arrayBuffer()).getUint32(0);
+    const head = JSON.parse(await f.slice(8, 8 + hl).text());
+    const have = new Set((await allBooks()).map(b => b.id));
+    let off = 8 + hl, added = 0, skipped = 0;
+    for (const m of head.books) {
+      const size = m.size;
+      if (have.has(m.id)) { skipped++; off += size; continue; }
+      const data = await f.slice(off, off + size).arrayBuffer();
+      off += size;
+      const book = { ...m }; delete book.size;
+      await putFile({ id: book.id, data });
+      await putBook(book);
+      added++;
+    }
+    setBusy('');
+    alert(added + ' livro(s) importado(s)' + (skipped ? '; ' + skipped + ' já existiam.' : '.'));
+    $('#look').classList.remove('on');
+    renderShelf();
+  } catch (err) {
+    setBusy('');
+    alert('Não consegui importar: ' + err.message);
+  }
+};
 
 /* ---------- Arranque ---------- */
 function show(id) {
